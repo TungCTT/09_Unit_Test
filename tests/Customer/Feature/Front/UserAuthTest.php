@@ -289,6 +289,24 @@ class UserAuthTest extends TestCase
         $this->assertDatabaseMissing('carts', ['user_id' => $user->id]);
     }
 
+    /**
+     * Test 11.7 — Rate Limiting (chống spam login thủ công)
+     */
+    public function test_login_blocks_user_after_too_many_attempts(): void
+    {
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 6; $i++) {
+            $response = $this->post('/login', [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
     // =========================================================================
     // confirmAccount — Tests 12.x
     // =========================================================================
